@@ -5,13 +5,13 @@ use t::Utils;
 use Test::More;
 
 BEGIN {
-    use_ok( 'DBIx::Sharding::Client' );
+    use_ok( 'DBIx::Sharding::Handler' );
     use_ok( 'DBIx::Sharding::ResultSet' );
 
-    require_ok 'DBIx::Sharding::Client';
+    require_ok 'DBIx::Sharding::Handler';
     require_ok 'DBIx::Sharding::ResultSet';
     
-    can_ok 'DBIx::Sharding::Client', (
+    can_ok 'DBIx::Sharding::Handler', (
         'connect',
         'disconnect',
         'parse_sql',
@@ -51,9 +51,9 @@ note "Done set up Test::mysqld.";
 
 {
     local $@;
-    my $client;
+    my $dbhandler;
     eval {
-        $client = DBIx::Sharding::Client->connect(
+        $dbhandler = DBIx::Sharding::Handler->connect(
             connect_infos => $connect_infos, 
             user          => $user,
             password      => $password,
@@ -67,7 +67,7 @@ note "Done set up Test::mysqld.";
 
     subtest 'check all table' => sub { 
         foreach my $name ('db1', 'db2', 'db3') {
-            my $dbh = $client->dbh($name);
+            my $dbh = $dbhandler->dbh($name);
             my $sth;
 
             $sth = $dbh->prepare("show tables like 'table_a'");
@@ -81,7 +81,7 @@ note "Done set up Test::mysqld.";
     };
 
     eval {
-        $client->disconnect();
+        $dbhandler->disconnect();
     };
     if ($@) {
         fail("disconnect $@");
@@ -93,7 +93,7 @@ note "Done set up Test::mysqld.";
 subtest 'parse_sql' => sub {
     my $parsed;
 
-    $parsed = DBIx::Sharding::Client->parse_sql("select a, b, c from t_table where a = '123' and b > 5  order  by  c limit 10 offset 5");
+    $parsed = DBIx::Sharding::Handler->parse_sql("select a, b, c from t_table where a = '123' and b > 5  order  by  c limit 10 offset 5");
     is_deeply $parsed, {
         command => "SELECT",
         columns => [
@@ -107,7 +107,7 @@ subtest 'parse_sql' => sub {
         offset  => 5,
     }, "parse simple SQL. use lower camel.";
 
-    $parsed = DBIx::Sharding::Client->parse_sql(<<"SQL");
+    $parsed = DBIx::Sharding::Handler->parse_sql(<<"SQL");
         SELECT 
             f_abc, 
             sum(f_bcd), 
@@ -132,21 +132,21 @@ SQL
         offset  => 60,
     }, "parse some SQL. use upper camel.";
 
-    $parsed = DBIx::Sharding::Client->parse_sql(<<"SQL");
+    $parsed = DBIx::Sharding::Handler->parse_sql(<<"SQL");
         DESC user
 SQL
     is_deeply $parsed, {
         command => "SHOW",
         type    => "columns",
     }, "desc SQL";
-    $parsed = DBIx::Sharding::Client->parse_sql(<<"SQL");
+    $parsed = DBIx::Sharding::Handler->parse_sql(<<"SQL");
         SET NAMES utf8 
 SQL
     is_deeply $parsed, {
         command => "SET",
         type    => "character_set_name",
     }, "set names utf8 SQL";
-    $parsed = DBIx::Sharding::Client->parse_sql(<<"SQL");
+    $parsed = DBIx::Sharding::Handler->parse_sql(<<"SQL");
         set  sql_big_selects = 1;
 SQL
     is_deeply $parsed, {
@@ -156,7 +156,7 @@ SQL
 };
 
 {
-    my $client = DBIx::Sharding::Client->connect(
+    my $dbhandler = DBIx::Sharding::Handler->connect(
         connect_infos => $connect_infos, 
         user          => $user,
         password      => $password,
@@ -164,7 +164,7 @@ SQL
 
     subtest "count all" => sub {
         my $sql = "SELECT COUNT(*) FROM table_a";
-        my $rs = $client->do($sql);
+        my $rs = $dbhandler->do($sql);
 
         is $rs->rows, 1, "rows";
         is $rs->fetchrow_arrayref->[0], 300, "result";
@@ -172,7 +172,7 @@ SQL
 
     subtest "sum all" => sub {
         my $sql = "SELECT SUM(id) FROM table_a";
-        my $rs = $client->do($sql);
+        my $rs = $dbhandler->do($sql);
 
         is $rs->rows, 1, "rows";
 
@@ -184,7 +184,7 @@ SQL
 
     subtest "max all" => sub {
         my $sql = "SELECT MAX(id) as a, MAX(int_a) as b FROM table_a";
-        my $rs = $client->do($sql);
+        my $rs = $dbhandler->do($sql);
 
         is $rs->rows, 1, "rows";
         my %row = $rs->fetchrow_hash;
@@ -194,7 +194,7 @@ SQL
 
     subtest "min all" => sub {
         my $sql = "SELECT MIN(int_a) FROM table_a";
-        my $rs = $client->do($sql);
+        my $rs = $dbhandler->do($sql);
 
         is $rs->rows, 1, "rows";
         is $rs->fetchrow_arrayref->[0], 1, "result";
@@ -204,13 +204,13 @@ SQL
         my $sql = "SELECT int_b, count(*) from table_a group by int_b";
         my %dbi_res;
         foreach my $name ('db1', 'db2', 'db3') {
-            my $sth = $client->dbh($name)->prepare($sql);
+            my $sth = $dbhandler->dbh($name)->prepare($sql);
             $sth->execute();
             while (my ($k, $v) = $sth->fetchrow_array) {
                 $dbi_res{$k} += $v;
             }
         }
-        my $rs = $client->do($sql);
+        my $rs = $dbhandler->do($sql);
 
         is scalar(keys %dbi_res), $rs->rows, "rows";
 
@@ -234,7 +234,7 @@ SQL
 SQL
         my %dbi_res;
         foreach my $name ('db1', 'db2', 'db3') {
-            my $sth = $client->dbh($name)->prepare($sql);
+            my $sth = $dbhandler->dbh($name)->prepare($sql);
             $sth->execute();
             while (my $row = $sth->fetchrow_hashref) {
                 my $key = $row->{int_b} . "-" .$row->{int_c};
@@ -248,7 +248,7 @@ SQL
                 }
             }
         }
-        my $rs = $client->do($sql);
+        my $rs = $dbhandler->do($sql);
 
         is scalar(keys %dbi_res), $rs->rows, "rows";
 
@@ -271,14 +271,14 @@ SQL
         my $sql = "SELECT id, int_a, int_b FROM table_a WHERE int_b > ? AND int_c < ? ORDER BY int_a ASC";
         my @dbi_res;
         foreach my $name ('db1', 'db2', 'db3') {
-            my $sth = $client->dbh($name)->prepare($sql);
+            my $sth = $dbhandler->dbh($name)->prepare($sql);
             $sth->execute(3, 7);
             while (my $row = $sth->fetchrow_hashref) {
                 push @dbi_res, $row;
             }
         }
         @dbi_res = sort {$a->{int_a} <=> $b->{int_a}} @dbi_res;
-        my $rs = $client->prepare($sql);
+        my $rs = $dbhandler->prepare($sql);
         $rs->execute(3, 7);
 
         is $rs->rows, scalar @dbi_res, "rows";
@@ -307,14 +307,14 @@ SQL
         my $sql = "SELECT id, int_a, int_b FROM table_a WHERE int_b > ? AND int_c < ? ORDER BY int_a DESC LIMIT 5";
         my @dbi_res;
         foreach my $name ('db1', 'db2', 'db3') {
-            my $sth = $client->dbh($name)->prepare($sql);
+            my $sth = $dbhandler->dbh($name)->prepare($sql);
             $sth->execute(3, 15);
             while (my $row = $sth->fetchrow_hashref) {
                 push @dbi_res, $row;
             }
         }
         @dbi_res = sort {$b->{int_a} <=> $a->{int_a}} @dbi_res;
-        my $rs = $client->prepare($sql);
+        my $rs = $dbhandler->prepare($sql);
         $rs->execute(3, 15);
 
         is $rs->rows, 5, "rows";
@@ -344,14 +344,14 @@ SQL
         my $sql = "SELECT id, int_a, int_b FROM table_a WHERE int_b > ? AND int_c < ? ORDER BY int_b, int_a DESC LIMIT 30";
         my @dbi_res;
         foreach my $name ('db1', 'db2', 'db3') {
-            my $sth = $client->dbh($name)->prepare($sql);
+            my $sth = $dbhandler->dbh($name)->prepare($sql);
             $sth->execute(2, 10);
             while (my $row = $sth->fetchrow_hashref) {
                 push @dbi_res, $row;
             }
         }
         @dbi_res = sort {$a->{int_b} <=> $b->{int_b} || $b->{int_a} <=> $a->{int_a}} @dbi_res;
-        my $rs = $client->prepare($sql);
+        my $rs = $dbhandler->prepare($sql);
         $rs->execute(2, 10);
 
         is $rs->rows, 30, "rows";
