@@ -45,6 +45,14 @@ sub prepare {
         croak "ERROR not support OFFSET. SQL=$sql";
     }
 
+    if ($statment->{group}) {
+        for my $param (@{$statment->{group}}) {
+            unless (grep {$_->{name} eq $param} @{ $statment->{columns} }) {
+                croak "ERROR not found grouped column in field list";
+            }
+        }
+    }
+
     my $result_set = DBIx::Sharding::ResultSet->new( %$statment );
 
     foreach my $name (keys %{$self->{dbhs}}) {
