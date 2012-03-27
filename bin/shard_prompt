@@ -35,10 +35,13 @@ shard_prompt - database management prompt for sharded databases.
 
 =head1 SYNOPSIS
 
+shard_prompt - database management prompt for sharded databases.
+
     $ shard_prompt --config=<path/to/config.yaml>
     $ shard_prompt --help
 
 Options:
-    --config -c <file>  => databases configfile
-    --help -h           => show this manual
+
+    --config -c <file>  : databases configfile
+    --help -h           : show this manual
 
