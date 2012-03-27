@@ -4,53 +4,67 @@ use strict;
 use warnings;
 
 use DBI;
+use DBIx::Sharding::ResultSet;
 use Carp qw/croak/;
-use Data::Dumper;
 
-sub new {
+sub connect {
     my ($class, %args) = @_;
     my $self = bless {
         connect_infos => $args{connect_infos},
         user          => $args{user},
         password      => $args{password},
-        dbhs          => [],
+        dbhs          => {},
     }, $class;
 
-    if ($self->{connect_infos}) {
-        $self->connect;
+    foreach my $name (keys %{$self->{connect_infos}}) {
+        $self->_connect($name, %{$self->{connect_infos}{$name}});
     }
+    return $self;
 }
 
-sub connect {
+sub disconnect {
     my ($self) = @_;
+    $self->{dbhs}{$_}->disconnect foreach (keys %{$self->{dbhs}});
+}
 
-    $self->_connect(%$_) for ( @{ $self->{connect_infos} } );
+sub dbh {
+  my ($self, $name) = @_;
+  return $self->{dbhs}{$name};
+}
+
+sub prepare {
+    my ($self, $sql) = @_;
+
+    $sql = $self->_clean_sql($sql);
+    $sql = $self->_replace_alias($sql);
+
+    my $statment = $self->parse_sql($sql);
+
+    if ($statment->{offset} && $statment->{offset} > 0) {
+        croak "ERROR not support OFFSET. SQL=$sql";
+    }
+
+    my $result_set = DBIx::Sharding::ResultSet->new( %$statment );
+
+    foreach my $name (keys %{$self->{dbhs}}) {
+        my $stmt = $self->dbh($name)->prepare($sql);
+        $result_set->add_stmt($stmt, $name);
+    }
+
+    return $result_set;
 }
 
 sub do {
     my ($self, $sql) = @_;
+    
+    my $result_set = $self->prepare($sql);
+
+    $result_set->execute();
+
+    return $result_set;
 }
 
-sub select {
-    my ($self, $sql) = @_;
-}
-
-sub show {
-    my ($self, $sql) = @_;
-}
-
-sub _connect {
-    my ($self, %config) = @_;
-
-    push @{ $self->{dbhs} }, DBI->connect( 
-        $config{dsn},
-        exists $config{user} ? $config{user} : $self->{user},
-        exists $config{password} ? $config{password} : $self->{password},
-        $config{options}
-    );
-}
-
-sub _parse_sql {
+sub parse_sql {
     my ($self, $sql) = @_;
 
     $sql = $self->_clean_sql($sql);
@@ -75,6 +89,19 @@ sub _parse_sql {
     }
 
     \%statment;
+}
+
+sub _connect {
+    my ($self, $name, %config) = @_;
+
+    return if ($self->{dbhs}{$name} && $self->{dbhs}{$name}->ping);
+
+    $self->{dbhs}{$name} = DBI->connect(
+        $config{dsn},
+        exists $config{user} ? $config{user} : $self->{user},
+        exists $config{password} ? $config{password} : $self->{password},
+        $config{options}
+    );
 }
 
 sub _clean_sql {
@@ -113,7 +140,7 @@ sub _parse_columns {
 
     my $columns_str = $1;
     my @columns;
-    for my $col_str ( split ",", $columns_str ) {
+    foreach my $col_str ( split ",", $columns_str ) {
         my %col;
         $col_str =~ s/^\s*(.*?)\s*$/$1/;
         if ($col_str =~ m/(.+) +AS +(.+)/i) {
@@ -142,7 +169,7 @@ sub _parse_group {
     }
 
     my @group;
-    for my $column (split / *, */, $1) {
+    foreach my $column (split / *, */, $1) {
         push @group, $column;
     }
     \@group;
@@ -155,7 +182,7 @@ sub _parse_order {
     }
 
     my @order;
-    for my $column (split / *, */, $1) {
+    foreach my $column (split / *, */, $1) {
         my @order_val = split /\s/, $column;
         push @order, {
             column => $order_val[0],
