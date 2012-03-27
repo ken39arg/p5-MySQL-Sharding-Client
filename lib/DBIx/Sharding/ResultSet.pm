@@ -4,15 +4,15 @@ use strict;
 use warnings;
 
 use Time::HiRes qw/gettimeofday tv_interval/;
-use Carp qw/croak/;
+use Carp qw/croak carp/;
 
 use constant AGGREGATE_FUNCTIONS => qw/SUM COUNT MAX MIN/;
 
 sub new {
     my ($class, %args) = @_;
     my $self = bless {
-        command   => $args{connect_infos},
-        columns   => $args{columns},
+        command   => $args{command},
+        columns   => $args{columns} || [],
         group     => $args{group} || [],
         order     => $args{order} || [],
         limit     => $args{limit} || 0,
@@ -43,7 +43,16 @@ sub execute {
     foreach my $name (sort keys %{ $self->{stmts} }) {
         my $start = [gettimeofday];
         my $stmt = $self->{stmts}{$name};
-        $stmt->execute(@params);
+        local $@;
+        unless ( $stmt->execute(@params) ) {
+            #carp $stmt->errstr;
+            next;
+        }
+
+        my $end   = [gettimeofday];
+        $self->{times}{$name} = tv_interval $start, $end;
+
+        next if ($self->{command} eq 'SET');
 
         if (@{ $self->{columns} } == 0 || $self->{columns}->[0]->{name} eq '*') {
             $self->{columns} = [];
@@ -56,12 +65,12 @@ sub execute {
             }
         }
 
+        next unless $stmt->rows;
+
         while (my @row = $stmt->fetchrow_array) {
             push @row, $name;
             push @{$self->{rows}}, \@row;
         }
-        my $end   = [gettimeofday];
-        $self->{times}{$name} = tv_interval $start, $end;
     }
 
     $self->{name_hash} = {};
@@ -205,9 +214,26 @@ sub fetchrow_hashref {
     \%row;
 }
 
+sub names {
+    my $self = shift;
+
+    my @names;
+    for my $column (@{$self->{columns}}) {
+        push @names, $column->{name};
+    }
+    push @names, 'claster';
+
+    \@names;
+}
+
 sub next_row_index {
     my $self = shift;
     $self->{row_index}++;
+}
+
+sub reset_row_index {
+    my $self = shift;
+    $self->{row_index} = 0;
 }
 
 sub has_next_row {

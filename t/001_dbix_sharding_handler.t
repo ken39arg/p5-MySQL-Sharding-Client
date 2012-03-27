@@ -5,11 +5,13 @@ use t::Utils;
 use Test::More;
 
 BEGIN {
-    use_ok( 'DBIx::Sharding::Handler' );
-    use_ok( 'DBIx::Sharding::ResultSet' );
+    use_ok 'DBIx::Sharding::Handler';
+    use_ok 'DBIx::Sharding::ResultSet';
+    use_ok 'DBIx::Sharding::Prompt';
 
     require_ok 'DBIx::Sharding::Handler';
     require_ok 'DBIx::Sharding::ResultSet';
+    require_ok 'DBIx::Sharding::Prompt';
     
     can_ok 'DBIx::Sharding::Handler', (
         'connect',
@@ -29,6 +31,10 @@ BEGIN {
         'fetchrow_hashref',
         'rows',
         'has_next_row',
+    );
+    can_ok 'DBIx::Sharding::Prompt', (
+        'new',
+        'run',
     );
 }
 

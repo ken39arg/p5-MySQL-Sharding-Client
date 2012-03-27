@@ -14,6 +14,7 @@ sub connect {
         user          => $args{user},
         password      => $args{password},
         dbhs          => {},
+        tables        => {},
     }, $class;
 
     foreach my $name (keys %{$self->{connect_infos}}) {
@@ -96,12 +97,22 @@ sub _connect {
 
     return if ($self->{dbhs}{$name} && $self->{dbhs}{$name}->ping);
 
-    $self->{dbhs}{$name} = DBI->connect(
+    my $dbh = DBI->connect(
         $config{dsn},
         exists $config{user} ? $config{user} : $self->{user},
         exists $config{password} ? $config{password} : $self->{password},
         $config{options}
     );
+
+    my $sth = $dbh->prepare("show tables");
+    $sth->execute();
+    my @tables;
+    while (my ($table) = $sth->fetchrow_array) {
+        push @tables, $table;
+    }
+
+    $self->{dbhs}{$name}   = $dbh;
+    $self->{tables}{$name} = \@tables;
 }
 
 sub _clean_sql {

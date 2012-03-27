@@ -1,0 +1,44 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use FindBin;
+use Path::Class;
+use Getopt::Long;
+use Pod::Usage;
+
+use lib file( $FindBin::RealBin, '..', 'lib' )->stringify;
+use DBIx::Sharding::Prompt;
+
+GetOptions(
+    'config|c=s' => \my $config,
+    'help'       => \my $help,
+);
+
+pod2usage if $help;
+
+$config ||= $ENV{HOME} . "/.sharding_prompt.yml";
+
+die "config not found $config\n" unless ( -f $config );
+
+my $prompt = DBIx::Sharding::Prompt->new( yaml => $config );
+
+$prompt->run;
+
+__END__
+
+=head1 NAME
+
+shard_prompt - database management prompt for sharded databases.
+
+
+=head1 SYNOPSIS
+
+    $ shard_prompt --config=<path/to/config.yaml>
+    $ shard_prompt --help
+
+Options:
+    --config -c <file>  => databases configfile
+    --help -h           => show this manual
+
