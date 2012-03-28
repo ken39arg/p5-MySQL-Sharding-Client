@@ -7,6 +7,8 @@ use DBI;
 use MySQL::Sharding::Client::ResultSet;
 use Carp qw/croak/;
 
+our $VERSION = '0.0.1';
+
 sub connect {
     my ($class, %args) = @_;
     my $self = bless {
