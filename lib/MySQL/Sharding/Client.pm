@@ -35,6 +35,18 @@ sub dbh {
   return $self->{dbhs}{$name};
 }
 
+sub ping {
+    my ($self, $name) = @_;
+    unless ($name) {
+        for $name ( keys %{$self->{dbhs}} ) {
+            return 0 unless $self->dbh($name)->ping;
+        }
+    } else {
+        return 0 unless $self->dbh($name)->ping;
+    }
+    return 1;
+}
+
 sub prepare {
     my ($self, $sql) = @_;
 

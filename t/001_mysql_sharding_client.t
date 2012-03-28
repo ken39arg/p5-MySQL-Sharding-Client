@@ -19,6 +19,7 @@ BEGIN {
         'parse_sql',
         'prepare',
         'do',
+        'ping',
     );
     can_ok 'MySQL::Sharding::Client::ResultSet', (
         'new',
@@ -70,6 +71,8 @@ note "Done set up Test::mysqld.";
     } else {
         pass("connect");
     }
+
+    ok $dbhandler->ping, "ping";
 
     subtest 'check all table' => sub { 
         foreach my $name ('db1', 'db2', 'db3') {
