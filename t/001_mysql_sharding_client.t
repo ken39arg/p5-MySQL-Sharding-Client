@@ -5,22 +5,22 @@ use t::Utils;
 use Test::More;
 
 BEGIN {
-    use_ok 'DBIx::Sharding::Handler';
-    use_ok 'DBIx::Sharding::ResultSet';
-    use_ok 'DBIx::Sharding::Prompt';
+    use_ok 'MySQL::Sharding::Client';
+    use_ok 'MySQL::Sharding::Client::ResultSet';
+    use_ok 'MySQL::Sharding::Client::Prompt';
 
-    require_ok 'DBIx::Sharding::Handler';
-    require_ok 'DBIx::Sharding::ResultSet';
-    require_ok 'DBIx::Sharding::Prompt';
+    require_ok 'MySQL::Sharding::Client';
+    require_ok 'MySQL::Sharding::Client::ResultSet';
+    require_ok 'MySQL::Sharding::Client::Prompt';
     
-    can_ok 'DBIx::Sharding::Handler', (
+    can_ok 'MySQL::Sharding::Client', (
         'connect',
         'disconnect',
         'parse_sql',
         'prepare',
         'do',
     );
-    can_ok 'DBIx::Sharding::ResultSet', (
+    can_ok 'MySQL::Sharding::Client::ResultSet', (
         'new',
         'add_stmt',
         'execute',
@@ -32,7 +32,7 @@ BEGIN {
         'rows',
         'has_next_row',
     );
-    can_ok 'DBIx::Sharding::Prompt', (
+    can_ok 'MySQL::Sharding::Client::Prompt', (
         'new',
         'run',
     );
@@ -59,7 +59,7 @@ note "Done set up Test::mysqld.";
     local $@;
     my $dbhandler;
     eval {
-        $dbhandler = DBIx::Sharding::Handler->connect(
+        $dbhandler = MySQL::Sharding::Client->connect(
             connect_infos => $connect_infos, 
             user          => $user,
             password      => $password,
@@ -99,7 +99,7 @@ note "Done set up Test::mysqld.";
 subtest 'parse_sql' => sub {
     my $parsed;
 
-    $parsed = DBIx::Sharding::Handler->parse_sql("select a, b, c from t_table where a = '123' and b > 5  order  by  c limit 10 offset 5");
+    $parsed = MySQL::Sharding::Client->parse_sql("select a, b, c from t_table where a = '123' and b > 5  order  by  c limit 10 offset 5");
     is_deeply $parsed, {
         command => "SELECT",
         columns => [
@@ -113,7 +113,7 @@ subtest 'parse_sql' => sub {
         offset  => 5,
     }, "parse simple SQL. use lower camel.";
 
-    $parsed = DBIx::Sharding::Handler->parse_sql(<<"SQL");
+    $parsed = MySQL::Sharding::Client->parse_sql(<<"SQL");
         SELECT 
             f_abc, 
             sum(f_bcd), 
@@ -138,21 +138,21 @@ SQL
         offset  => 60,
     }, "parse some SQL. use upper camel.";
 
-    $parsed = DBIx::Sharding::Handler->parse_sql(<<"SQL");
+    $parsed = MySQL::Sharding::Client->parse_sql(<<"SQL");
         DESC user
 SQL
     is_deeply $parsed, {
         command => "SHOW",
         type    => "columns",
     }, "desc SQL";
-    $parsed = DBIx::Sharding::Handler->parse_sql(<<"SQL");
+    $parsed = MySQL::Sharding::Client->parse_sql(<<"SQL");
         SET NAMES utf8 
 SQL
     is_deeply $parsed, {
         command => "SET",
         type    => "character_set_name",
     }, "set names utf8 SQL";
-    $parsed = DBIx::Sharding::Handler->parse_sql(<<"SQL");
+    $parsed = MySQL::Sharding::Client->parse_sql(<<"SQL");
         set  sql_big_selects = 1;
 SQL
     is_deeply $parsed, {
@@ -162,7 +162,7 @@ SQL
 };
 
 {
-    my $dbhandler = DBIx::Sharding::Handler->connect(
+    my $dbhandler = MySQL::Sharding::Client->connect(
         connect_infos => $connect_infos, 
         user          => $user,
         password      => $password,

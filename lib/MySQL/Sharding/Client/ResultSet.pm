@@ -1,4 +1,4 @@
-package DBIx::Sharding::ResultSet;
+package MySQL::Sharding::Client::ResultSet;
 
 use strict;
 use warnings;

@@ -9,7 +9,7 @@ use Getopt::Long;
 use Pod::Usage;
 
 use lib file( $FindBin::RealBin, '..', 'lib' )->stringify;
-use DBIx::Sharding::Prompt;
+use MySQL::Sharding::Client::Prompt;
 
 GetOptions(
     'config|c=s' => \my $config,
@@ -22,7 +22,7 @@ $config ||= $ENV{HOME} . "/.sharding_prompt.yml";
 
 die "config not found $config\n" unless ( -f $config );
 
-my $prompt = DBIx::Sharding::Prompt->new( yaml => $config );
+my $prompt = MySQL::Sharding::Client::Prompt->new( yaml => $config );
 
 $prompt->run;
 

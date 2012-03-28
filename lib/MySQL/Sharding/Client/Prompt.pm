@@ -1,10 +1,10 @@
-package DBIx::Sharding::Prompt;
+package MySQL::Sharding::Client::Prompt;
 
 use strict;
 use warnings;
 
 use Term::ReadLine;
-use DBIx::Sharding::Handler;
+use MySQL::Sharding::Client;
 use YAML::Syck;
 
 sub new {
@@ -28,7 +28,7 @@ sub new {
 
 sub run {
     my ($self, %args) = @_;
-    my $handler = DBIx::Sharding::Handler->connect(
+    my $handler = MySQL::Sharding::Client->connect(
         %{ $self->{handler_options} }
     );
 
@@ -39,7 +39,7 @@ sub run {
     }
 
     my $term  = Term::ReadLine->new(
-        $args{title} || "DBIx::Sharding::Prompt",
+        $args{title} || "MySQL::Sharding::Client::Prompt",
     );
     my $prompt = $args{prompt} || "sharding> ";
     my $OUT = $term->OUT || \*STDOUT;

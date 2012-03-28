@@ -1,10 +1,10 @@
-package DBIx::Sharding::Handler;
+package MySQL::Sharding::Client;
 
 use strict;
 use warnings;
 
 use DBI;
-use DBIx::Sharding::ResultSet;
+use MySQL::Sharding::Client::ResultSet;
 use Carp qw/croak/;
 
 sub connect {
@@ -53,7 +53,7 @@ sub prepare {
         }
     }
 
-    my $result_set = DBIx::Sharding::ResultSet->new( %$statment );
+    my $result_set = MySQL::Sharding::Client::ResultSet->new( %$statment );
 
     foreach my $name (keys %{$self->{dbhs}}) {
         my $stmt = $self->dbh($name)->prepare($sql);
