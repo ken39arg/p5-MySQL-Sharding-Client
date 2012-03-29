@@ -39,6 +39,7 @@ sub execute {
 
     $self->{rows} = [];
     $self->{times} = {};
+    $self->reset_row_index;
 
     foreach my $name (sort keys %{ $self->{stmts} }) {
         my $start = [gettimeofday];
