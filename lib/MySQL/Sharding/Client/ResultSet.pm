@@ -299,3 +299,73 @@ sub _merge_row {
 }
 
 1;
+__END__
+
+=head1 NAME
+
+MySQL::Sharding::Client::ResultSet - perl module to used by MySQL::Sharding::Client.
+
+=head1 VERSION
+
+This document describes MySQL::Sharding::Client::Client version 0.0.1.
+
+=head1 SYNOPSIS
+
+    use MySQL::Sharding::Client::ResultSet;
+
+    my $sth = MySQL::Sharding::Client::ResultSet->new(
+        command => 'SELECT',
+        %arguments,
+    );
+
+    $sth->add_stmt( $_->prepare($statement) ) for @dbhs;
+
+    $sth->execute(@bind_value);
+
+    $rv = $sth->rows;
+
+    $sth->group_by(@column_names);
+
+    $sth->order_by($column_name, 'ASC');
+    $sth->order_by($column_name, 'DESC');
+
+    $sth->limit($num);
+
+    @row_ary  = $sth->fetchrow_array;
+    %row_hash = $sth->fetchrow_hash;
+    $ary_ref  = $sth->fetchrow_arrayref;
+    $hash_ref = $sth->fetchrow_hashref;
+
+    $sth->disconnect;
+
+=head1 DESCRIPTION
+
+This Module instance returned by MySQL::Sharding::Client->prepare
+or MySQL::Sharding::Client->do.
+
+=head1 DEPENDENCIES
+
+Perl 5.8.1 or later.
+
+=head1 BUGS
+
+All complex software has bugs lurking in it, and this module is no
+exception. If you find a bug please either email me, or add the bug
+to cpan-RT.
+
+=head1 SEE ALSO
+
+L<perl>
+
+=head1 AUTHOR
+
+Kensaku Araga E<lt>ken39arg {at} gmail.com<gt>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2012, Kensaku Araga. All rights reserved.
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut

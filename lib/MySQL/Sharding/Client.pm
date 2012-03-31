@@ -266,3 +266,88 @@ sub _parse_set {
 }
 
 1;
+__END__
+
+=head1 NAME
+
+MySQL::Sharding::Client - Perl extention to do can be use as one DBI handle to many DBI handles.
+
+=head1 VERSION
+
+This document describes MySQL::Sharding::Client version 0.0.1.
+
+=head1 SYNOPSIS
+
+    use MySQL::Sharding::Client;
+
+    # connect any dsn
+    my $dbh = MySQL::Sharding::Client->connect(
+        connect_infos => {
+            shard01 => {
+                dsn      => $shard01_dsn, 
+                user     => $shard01_user, 
+                password => $shard01_password, 
+                options  => $shard01_dboption,
+            },
+            shard02 => {
+                dsn => $shard02_dsn,
+            },
+        }, 
+        user          => $default_user,
+        password      => $default_pass,
+    );
+
+    # ping to all dbhs.
+    die "connect fail" unless $dbh->ping;
+
+    # do statement
+    # usable SQL command is only `SELECT` or `SET`.
+    my $sth = $dbh->do( $statement );
+
+    # prepare and execute
+    $sth = $dbh->prepare( $statement );
+
+    $sth->execute;
+    $sth->execute( @bind_value );
+
+    $rv = $sth->rows;
+
+    @row_ary  = $sth->fetchrow_array;
+    %row_hash = $sth->fetchrow_hash;
+    $ary_ref  = $sth->fetchrow_arrayref;
+    $hash_ref = $sth->fetchrow_hashref;
+
+    $sth->disconnect;
+
+=head1 DESCRIPTION
+
+This module is to do can be use as one DBI handle to many DBI handles.
+DML is supported in this module is only SELECT.
+And support some analyzed command COUNT, SUM, MAX, MIN.
+
+=head1 DEPENDENCIES
+
+Perl 5.8.1 or later.
+
+=head1 BUGS
+
+All complex software has bugs lurking in it, and this module is no
+exception. If you find a bug please either email me, or add the bug
+to cpan-RT.
+
+=head1 SEE ALSO
+
+L<perl>
+
+=head1 AUTHOR
+
+Kensaku Araga E<lt>ken39arg {at} gmail.com<gt>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2012, Kensaku Araga. All rights reserved.
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut

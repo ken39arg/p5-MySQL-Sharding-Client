@@ -40,8 +40,28 @@ shard_prompt - database management prompt for sharded databases.
     $ shard_prompt --config=<path/to/config.yaml>
     $ shard_prompt --help
 
-Options:
 
-    --config -c <file>  : databases configfile
+=head2 Options:
+
+    --config -c <file>  : databases configfile. (default : ${HOME}/.sharding_prompt.yml).
     --help -h           : show this manual
+
+
+=head2 Config file example 
+
+    connect_infos:
+      name1:
+        dsn: DBI:mysql:database=dbname1;host=localhost; 
+      name2:
+        dsn: DBI:mysql:database=dbname2;host=localhost; 
+        user: username
+        password: password 
+        options:
+          RaiseError: 1
+      name3:
+        dsn: DBI:mysql:database=dbname3;host=localhost; 
+    
+    user:     root
+    password: ''
+
 

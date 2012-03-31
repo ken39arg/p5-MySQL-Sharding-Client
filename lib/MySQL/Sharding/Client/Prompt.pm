@@ -122,3 +122,63 @@ sub __print_row {
 }
 
 1;
+__END__
+
+=head1 NAME
+
+MySQL::Sharding::Client::Prompt - perl module to do use MySQL::Sharding::Client by prompt.
+
+=head1 VERSION
+
+This document describes MySQL::Sharding::Client::Prompt version 0.0.1.
+
+=head1 SYNOPSIS
+
+    use MySQL::Sharding::Client::Prompt;
+
+    # create by MySQL::Sharding::Client connect options
+    $prompt = MySQL::Sharding::Client::Prompt->new(
+        %handler_options,
+    );
+
+    # create by yaml file.
+    $prompt = MySQL::Sharding::Client::Prompt->new(
+        yaml => 'path/to/connect_infos.yaml',
+    );
+
+    $prompt->run;
+    $prompt->run(
+        title  => 'shard01 and shard01',
+        prompt => 'pronpt> ',
+    );
+
+=head1 DESCRIPTION
+
+this module used by sharding_prompt
+
+=head1 DEPENDENCIES
+
+Perl 5.8.1 or later.
+
+=head1 BUGS
+
+All complex software has bugs lurking in it, and this module is no
+exception. If you find a bug please either email me, or add the bug
+to cpan-RT.
+
+=head1 SEE ALSO
+
+L<perl>
+
+=head1 AUTHOR
+
+Kensaku Araga E<lt>ken39arg {at} gmail.com<gt>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2012, Kensaku Araga. All rights reserved.
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
