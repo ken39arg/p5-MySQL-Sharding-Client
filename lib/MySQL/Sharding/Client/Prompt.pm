@@ -60,11 +60,11 @@ sub run {
                 if ($@) {
                     print $OUT "$@\n";
                 }
+                $term->addhistory($exec_sql);
             } else {
                 last;
             }
         }
-        $term->addhistory($_) if /\S/;
     }
 }
 
