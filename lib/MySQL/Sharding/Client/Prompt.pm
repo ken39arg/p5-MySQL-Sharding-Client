@@ -46,11 +46,17 @@ sub run {
 
     my $sql = "";
     while ( defined ($_ = $term->readline($prompt)) ) {
-        $sql .= $_;
-
+        if ($_ =~ m/^\\(\w+)/) {
+          my $command = $1;
+          return if ($command eq 'q');
+        }
+        $sql .= " $_";
         while (1) {
             if ($sql =~ m/(.*?);(.*)/) {
                 my $exec_sql = $1;
+                $exec_sql =~ s/^\s+//g;
+                return if (lc $exec_sql eq 'exit');
+
                 $sql = $2;
                 local $@;
                 eval {
