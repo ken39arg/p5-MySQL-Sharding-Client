@@ -52,6 +52,7 @@ sub run {
         }
         $sql .= " $_";
         while (1) {
+            last unless $sql;
             if ($sql =~ m/(.*?);(.*)/) {
                 my $exec_sql = $1;
                 $exec_sql =~ s/^\s+//g;
