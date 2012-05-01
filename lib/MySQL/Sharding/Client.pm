@@ -197,7 +197,7 @@ sub _parse_columns {
 
 sub _parse_group {
     my ($self, $sql) = @_;
-    unless ($sql =~ m/GROUP +BY +(.+?) *(HAVING|UNION|ORDER|LIMIT|$)/i) {
+    unless ($sql =~ m/GROUP +BY +([^\)]+?) *(HAVING|UNION|ORDER|LIMIT|$)[\)]*/i) {
         return undef;
     }
 

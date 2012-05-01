@@ -141,6 +141,19 @@ SQL
         offset  => 60,
     }, "parse some SQL. use upper camel.";
 
+    $parsed = MySQL::Sharding::Client->parse_sql("select ts, count(u) as uu from (select u, (sum(point) + 49) DIV 50 as ts from tbl group by u) m group by ts");
+    is_deeply $parsed, {
+        command => "SELECT",
+        columns => [
+            {column => 'ts', name => 'ts', command => 'NONE'},
+            {column => 'count(u)', name => 'uu', command => 'COUNT'},
+        ],
+        group   => ['ts'],
+        order   => undef,
+        limit   => 0,
+        offset  => 0,
+    }, "parse sub query.";
+
     $parsed = MySQL::Sharding::Client->parse_sql(<<"SQL");
         DESC user
 SQL
