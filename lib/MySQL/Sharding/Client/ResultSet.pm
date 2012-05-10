@@ -277,7 +277,7 @@ sub _merge_row {
     for (my $i=0;$i<@{$self->{columns}};++$i) {
         my $command = $self->{columns}->[$i]->{command};
         if ($command eq "COUNT" || $command eq "SUM") {
-            $row->[$i] = $row->[$i] + $add->[$i];
+            $row->[$i] = ($row->[$i] || 0) + ($add->[$i] || 0);
         } elsif ($command eq "MAX") {
             $row->[$i] = $add->[$i] if ($row->[$i] < $add->[$i]);
         } elsif ($command eq "MIN") {
