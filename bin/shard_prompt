@@ -10,6 +10,7 @@ use Pod::Usage;
 
 use lib file( $FindBin::RealBin, '..', 'lib' )->stringify;
 use MySQL::Sharding::Client::Prompt;
+use MySQL::Sharding::Client::Output;
 
 GetOptions(
     'config|c=s' => \my $config,
@@ -22,9 +23,13 @@ $config ||= $ENV{HOME} . "/.sharding_prompt.yml";
 
 die "config not found $config\n" unless ( -f $config );
 
-my $prompt = MySQL::Sharding::Client::Prompt->new( yaml => $config );
+if (-t STDIN) {
+    MySQL::Sharding::Client::Prompt->new( yaml => $config )->run;
+} else {
+    MySQL::Sharding::Client::Output->new( yaml => $config )->execute(<STDIN>);
+}
 
-$prompt->run;
+
 
 __END__
 
@@ -38,6 +43,7 @@ shard_prompt - database management prompt for sharded databases.
 shard_prompt - database management prompt for sharded databases.
 
     $ shard_prompt --config=<path/to/config.yaml>
+    $ shard_prompt < path/to.sql                   # if you output term
     $ shard_prompt --help
 
 
