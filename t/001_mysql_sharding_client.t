@@ -155,6 +155,52 @@ SQL
     }, "parse sub query.";
 
     $parsed = MySQL::Sharding::Client->parse_sql(<<"SQL");
+        select
+            t.t_id,
+            fday,
+            count(uid) as user_num,
+            datediff(end, fday) + 1 as full_day,
+            SUM(case when datediff(end, fday) + 1 = num then 1 else 0 end) as full,
+            SUM(case when num = 1 then 1 else 0 end) as once,
+            sum(num) as total
+        from (
+            select
+                t_id,
+                uid,
+                min(day)   as fday,
+                max(day)   as lday,
+                count(day) as num
+            from t_test 
+            group by t_id, uid
+        ) t
+        left join (
+            select
+                t_id,
+                max(day)   as end
+            from t_test
+            group by t_id
+        ) s
+        ON t.t_id = s.t_id
+        group by t.t_id, fday
+SQL
+    is_deeply $parsed, {
+        command => "SELECT",
+        columns => [
+            {column => 't.t_id', name => 't.t_id', command => 'NONE'},
+            {column => 'fday', name => 'fday', command => 'NONE'},
+            {column => 'count(uid)', name => 'user_num', command => 'COUNT'},
+            {column => 'datediff(end, fday) + 1', name => 'full_day', command => 'NONE'},
+            {column => 'SUM(case when datediff(end, fday) + 1 = num then 1 else 0 end)', name => 'full', command => 'SUM'},
+            {column => 'SUM(case when num = 1 then 1 else 0 end)', name => 'once', command => 'SUM'},
+            {column => 'sum(num)', name => 'total', command => 'SUM'},
+        ],
+        group   => ['t.t_id', 'fday'],
+        order   => undef,
+        limit   => 0,
+        offset  => 0,
+    }, "parse sub query with another func.";
+
+    $parsed = MySQL::Sharding::Client->parse_sql(<<"SQL");
         DESC user
 SQL
     is_deeply $parsed, {

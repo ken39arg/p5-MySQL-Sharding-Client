@@ -172,10 +172,28 @@ sub _parse_columns {
     }
 
     my $columns_str = $1;
+    my @columns_list;
     my @columns;
-    foreach my $col_str ( split ",", $columns_str ) {
+    my $pos = 0;
+    my $str = "";
+    my $c   = 0;
+    while ($columns_str =~ m/\G.*?([\(\),])/gcs) {
+        $str .= $&;
+        $pos = $+[1];
+        if ($1 eq '(') {
+            ++$c
+        } elsif ($1 eq ')') {
+            --$c;
+        } elsif ($c == 0) {
+            push @columns_list, $str;
+            $str = "";
+        }
+    }
+    push @columns_list, $str . substr($columns_str, $pos);
+
+    for my $col_str ( @columns_list ) {
         my %col;
-        $col_str =~ s/^\s*(.*?)\s*$/$1/;
+        $col_str =~ s/^\s*(.*?)\s*,?\s*$/$1/;
         if ($col_str =~ m/(.+) +AS +(.+)/i) {
             $col{column}  = $1;
             $col{name} = $2;
@@ -184,7 +202,7 @@ sub _parse_columns {
             $col{name} = $col_str;
         }
 
-        if ($col{column} =~ m/^(\w+)\(.+\)/i) {
+        if ($col{column} =~ m/^(\w+)\(.+\)$/i) {
             $col{command} = uc $1;
         } else {
             $col{command} = 'NONE';
