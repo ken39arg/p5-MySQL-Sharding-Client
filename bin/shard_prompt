@@ -63,5 +63,8 @@ shard_prompt - database management prompt for sharded databases.
     
     user:     root
     password: ''
+    pre_commands:
+      - set names utf8
+      - set sql_big_selects=1 
 
 

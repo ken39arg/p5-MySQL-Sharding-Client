@@ -318,6 +318,11 @@ This document describes MySQL::Sharding::Client version 0.0.1.
         }, 
         user          => $default_user,
         password      => $default_pass,
+        pre_commands  => [
+            $preset_sql_1,
+            $preset_sql_2,
+            ...,
+        ],
     );
 
     # ping to all dbhs.

@@ -45,6 +45,9 @@ add ${HOME}/.sharding_prompt.yml
     
     user:     root
     password: ''
+    pre_commands:
+      - set names utf8
+      - set sql_big_selects=1 
 
 HOWTO USE PROMPT
 ----------
