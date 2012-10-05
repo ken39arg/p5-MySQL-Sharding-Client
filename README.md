@@ -52,12 +52,18 @@ add ${HOME}/.sharding_prompt.yml
 HOWTO USE PROMPT
 ----------
 
+
+### running to prompt 
+
     $ shard_prompt --config=<path/to/config.yaml>
     $ shard_prompt --help
     $ shard_prompt
 
 and input SQL.
 
+### Standard input file or pipe.
+
+    $ shard_prompt < /path/to/select.sql
 
 SUPPORTING COMMAND 
 ----------
