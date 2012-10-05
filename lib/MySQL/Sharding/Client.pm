@@ -124,7 +124,7 @@ sub _connect {
         $config{dsn},
         exists $config{user} ? $config{user} : $self->{user},
         exists $config{password} ? $config{password} : $self->{password},
-        $config{options}
+        { RaiseError => 1, PrintError => 0, %{ $config{options} || {} }},
     );
 
     my $sth = $dbh->prepare("show tables");

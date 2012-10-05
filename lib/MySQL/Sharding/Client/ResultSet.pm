@@ -45,11 +45,11 @@ sub execute {
         my $start = [gettimeofday];
         my $stmt = $self->{stmts}{$name};
         local $@;
-        unless ( $stmt->execute(@params) ) {
-            #carp $stmt->errstr;
-            next;
+        eval { $stmt->execute(@params); };
+        if ($@) {
+            next if ( $stmt->errstr =~ /Table '.*?' doesn't exist/);
+            carp $stmt->errstr;
         }
-
         my $end   = [gettimeofday];
         $self->{times}{$name} = tv_interval $start, $end;
 
