@@ -89,6 +89,7 @@ sub __print_row {
     
     while (my @row = $rs->fetchrow_array) {
         for (my $i = 0; $i < $index; $i++) {
+            $row[$i] ||= '';
             $size[$i] = length($row[$i]) if ($size[$i] < length($row[$i]));
         }
     }
