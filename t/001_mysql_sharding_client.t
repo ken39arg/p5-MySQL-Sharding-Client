@@ -97,6 +97,40 @@ note "Done set up Test::mysqld.";
     } else {
         pass("disconnect");
     }
+
+    subtest 'pre commands' => sub { 
+        eval {
+            $dbhandler = MySQL::Sharding::Client->connect(
+                connect_infos => $connect_infos, 
+                user          => $user,
+                password      => $password,
+                pre_commands  => [
+                    'set SQL_MAX_JOIN_SIZE=1028',
+                    'insert into table_b set id = 999, user_id = 123',
+                ],
+            );
+        };
+        if ($@) {
+            fail("connect $@");
+        } else {
+            pass("connect with pre_commands");
+        }
+        foreach my $name ('db1', 'db2', 'db3') {
+            my $dbh = $dbhandler->dbh($name);
+            my $sth;
+
+            $sth = $dbh->prepare("select * from table_b where id = ?");
+            $sth->execute(999);
+            ok $sth->rows, "prepare insert OK $name";
+            is $sth->fetchrow_hashref->{user_id}, '123', "set val $name";
+
+            $sth = $dbh->prepare("show variables like 'max_join_size'");
+            $sth->execute();
+            is $sth->fetchrow_arrayref->[1], 1028, "count table $name";
+        }
+        $dbhandler->disconnect();
+    };
+
 }
 
 subtest 'parse_sql' => sub {

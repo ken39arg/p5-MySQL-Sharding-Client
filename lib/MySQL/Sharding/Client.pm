@@ -15,6 +15,7 @@ sub connect {
         connect_infos => $args{connect_infos},
         user          => $args{user},
         password      => $args{password},
+        pre_commands  => $args{pre_commands} || [],
         dbhs          => {},
         tables        => {},
     }, $class;
@@ -135,6 +136,10 @@ sub _connect {
 
     $self->{dbhs}{$name}   = $dbh;
     $self->{tables}{$name} = \@tables;
+
+    for my $sql (@{ $self->{pre_commands} }) {
+        $dbh->do($sql);
+    }
 }
 
 sub _clean_sql {
