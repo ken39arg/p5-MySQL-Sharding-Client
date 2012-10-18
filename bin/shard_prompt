@@ -26,7 +26,9 @@ die "config not found $config\n" unless ( -f $config );
 if (-t STDIN) {
     MySQL::Sharding::Client::Prompt->new( yaml => $config )->run;
 } else {
-    MySQL::Sharding::Client::Output->new( yaml => $config )->execute(<STDIN>);
+    my $sql = "";
+    $sql .= $_ while (<>);
+    MySQL::Sharding::Client::Output->new( yaml => $config )->execute($sql);
 }
 
 
