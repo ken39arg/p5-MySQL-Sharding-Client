@@ -215,7 +215,7 @@ SQL
             group by t_id
         ) s
         ON t.t_id = s.t_id
-        group by t.t_id, fday
+        group by t.t_id, fday;
 SQL
     is_deeply $parsed, {
         command => "SELECT",

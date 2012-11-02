@@ -151,6 +151,7 @@ sub _clean_sql {
     $sql =~ s/\t/ /g;
     $sql =~ s/^ +//g;
     $sql =~ s/\s+/ /g;
+    $sql =~ s/;\s*$//g;
 
     return $sql;
 }
