@@ -39,6 +39,7 @@ sub execute {
     print join $separator, @{ $rs->names };
     print "\n";
     while (my @row = $rs->fetchrow_array) {
+        next unless @row;
         print join $separator, @row;
         print "\n";
     }
