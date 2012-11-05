@@ -40,7 +40,7 @@ sub execute {
     print "\n";
     while (my @row = $rs->fetchrow_array) {
         next unless @row;
-        print join $separator, @row;
+        print join $separator, map {defined $_ ? $_ : "" } @row;
         print "\n";
     }
 }
