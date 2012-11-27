@@ -221,9 +221,10 @@ sub _parse_columns {
 
 sub _parse_group {
     my ($self, $sql) = @_;
-    unless ($sql =~ m/GROUP +BY +([^\)]+?) *(HAVING|UNION|ORDER|LIMIT|$)[\)]*/i) {
-        return undef;
-    }
+    my $f = 0;
+    $f = 1 while ($sql =~ m/GROUP +BY +([^\)]+?) *(HAVING|UNION|ORDER|LIMIT|$)[\)]*/gi);
+
+    return undef unless $f;
 
     my @group;
     foreach my $column (split / *, */, $1) {

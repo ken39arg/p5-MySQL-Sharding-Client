@@ -234,6 +234,33 @@ SQL
         offset  => 0,
     }, "parse sub query with another func.";
 
+    $parsed = MySQL::Sharding::Client->parse_sql("select 
+         mbc,
+         count(ma) as mac 
+       from (
+         select 
+           ma,
+           count(mb) as mbc
+         from tablem 
+         where mc = 1
+         group by ma having mbc >= 10
+       ) m 
+       where mbc >= 15
+       group by mbc
+       order by mbc desc
+    ");
+    is_deeply $parsed, {
+        command => "SELECT",
+        columns => [
+            {column => 'mbc', name => 'mbc', command => 'NONE'},
+            {column => 'count(ma)', name => 'mac', command => 'COUNT'},
+        ],
+        group   => ['mbc'],
+        order   => [{column => 'mbc', order => 'DESC'}],
+        limit   => 0,
+        offset  => 0,
+    }, "parse sub query which use GROUP BY and HAVING.";
+
     $parsed = MySQL::Sharding::Client->parse_sql(<<"SQL");
         DESC user
 SQL
