@@ -41,6 +41,7 @@ sub run {
     my $term  = Term::ReadLine->new(
         $args{title} || "MySQL::Sharding::Client::Prompt",
     );
+    binmode($term->IN, ':utf8');
     my $prompt = $args{prompt} || "sharding> ";
     my $OUT = $term->OUT || \*STDOUT;
 
