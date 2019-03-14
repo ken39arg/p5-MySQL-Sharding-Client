@@ -105,7 +105,7 @@ note "Done set up Test::mysqld.";
                 user          => $user,
                 password      => $password,
                 pre_commands  => [
-                    'set SQL_MAX_JOIN_SIZE=1028',
+                    'set MAX_JOIN_SIZE=1028',
                     'insert into table_b set id = 999, user_id = 123',
                 ],
             );
@@ -510,4 +510,3 @@ SQL
 
 
 done_testing;
-
